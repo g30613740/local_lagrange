@@ -1,7 +1,6 @@
 #include "functions.h"
 
-// константный метод. Принято: если передача по указателю, то будет меняться
-// надо передавать по константной ссылке
+
 long double get_polynoms_value_in_the_point (
     const long double* a_x,
     const long double* a_y,
@@ -27,4 +26,19 @@ long double get_polynoms_value_in_the_point (
 long double get_value_of_the_math_function_in_the_point (long double point) {
     
     return sin (point);
+}
+
+size_t find_interval (long double x, long double a, long double step, size_t K) {
+    // Защита от погрешности вычислений: если x очень близко к b
+    const long double eps = 1e-12;
+    long double right_bound = a + K * step;
+    if (x >= right_bound - eps) {
+        return K;
+    }
+    for (size_t j = 1; j < K; ++j) {
+        if (x <= a + j * step + eps) {
+            return j;
+        }
+    }
+    return K; // fallback
 }

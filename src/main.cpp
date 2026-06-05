@@ -25,7 +25,7 @@ int main () {
     // arrays for Lagrange's polynom creating //
     long double *x = new long double [M];
     long double *y = new long double [M];
-    // arrays for Lagrange's polynom creating and vizualisation //
+    // arrays for Lagrange's polynom creating and visualization //
     long double *grid = new long double [M_viz];
     long double *L = new long double [M_viz];
     // arrays for errors evaluating //
@@ -46,44 +46,12 @@ int main () {
         grid[i] = grid[i-1] + grids_step;
 
     for (size_t i = 0; i < M_viz; ++i) {
-        // where is grid[i]? what are the indexes of interpolation for grid[i]?
-        // grid[i] is on the one of the Ks interval
-        size_t initial_index_of_interpolation = 0;
-        size_t final_index_of_interpolation = 0;
-        // cout << "i = " << i << endl;
-        for (size_t j = 1; j < K + 1; ++j) {
-            // if (grid[i] - 1.0e-10 < j * K_grid_of_intervals) {
-            if (grid[i] < j * K_grid_of_intervals) {
-                // cout << "grid[i] = " << grid[i] << endl;
-                // cout << "j * K_grid_of_intervals = " << j << " * " << K_grid_of_intervals << " = " << j * K_grid_of_intervals << endl;
-                initial_index_of_interpolation = (j - 1) * (N - 1);
-                final_index_of_interpolation = j * (N - 1);
-                break;
-            }
-        }
-        // cout << "initial_index_of_interpolation = " << initial_index_of_interpolation << endl;
-        // cout << "final_index_of_interpolation = " << final_index_of_interpolation << endl;
-        L[i] = get_polynoms_value_in_the_point (x, y, grid[i], initial_index_of_interpolation, final_index_of_interpolation);
+        size_t interval = find_interval (grid[i], a, K_grid_of_intervals, K);
+        size_t start_idx = (interval - 1) * (N - 1);
+        size_t end_idx   = interval * (N - 1);
+        L[i] = get_polynoms_value_in_the_point (x, y, grid[i], start_idx, end_idx);
     }
 
-    // is values in the nodes f(x) (just values y[i]) are equal values in nodes of L(x)? //
-    // for (size_t i = 0; i < M; ++i) {
-    //     size_t initial_index_of_interpolation;
-    //     size_t final_index_of_interpolation;
-    //     cout << "i = " << i << endl;
-    //     for (size_t j = 1; j < K + 1; ++j) {
-    //         if (x[i] < j * K_grid_of_intervals) {
-    //             cout << "x[i] = " << x[i] << endl;
-    //             cout << "j * K_grid_of_intervals = " << j << " * " << K_grid_of_intervals << " = " << j * K_grid_of_intervals << endl;
-    //             initial_index_of_interpolation = (j - 1) * (N - 1);
-    //             final_index_of_interpolation = j * (N - 1);
-    //             break;
-    //         }
-    //     }
-    //     cout << "initial_index_of_interpolation = " << initial_index_of_interpolation << endl;
-    //     cout << "final_index_of_interpolation = " << final_index_of_interpolation << endl;
-    //     cout << get_polynoms_value_in_the_point (x, y, x[i], initial_index_of_interpolation, final_index_of_interpolation) << " v " << y[i] << "\n\n";
-    // }
 
     // IV. Evaluating errors. //
 
@@ -93,25 +61,14 @@ int main () {
         error_grid[i] = error_grid[i-1] + error_grids_step;
         values_of_the_math_function_in_the_points_of_error_grid[i] = get_value_of_the_math_function_in_the_point (error_grid[i]);
     }
+    
     for (size_t i = 0; i < number_of_points_of_error_grid_step; ++i) {
-        // where is grid[i]? what are the indexes of interpolation for grid[i]?
-        // grid[i] is on the one of the Ks interval
-        size_t initial_index_of_interpolation = 0;
-        size_t final_index_of_interpolation = 0;
-        // cout << "i = " << i << endl;
-        for (size_t j = 1; j < K + 1; ++j) {
-            if (error_grid[i] - 1.0e-10 < j * K_grid_of_intervals) {
-                // cout << "grid[i] = " << grid[i] << endl;
-                // cout << "j * K_grid_of_intervals = " << j << " * " << K_grid_of_intervals << " = " << j * K_grid_of_intervals << endl;
-                initial_index_of_interpolation = (j - 1) * (N - 1);
-                final_index_of_interpolation = j * (N - 1);
-                break;
-            }
-        }
-        // cout << "initial_index_of_interpolation = " << initial_index_of_interpolation << endl;
-        // cout << "final_index_of_interpolation = " << final_index_of_interpolation << endl;
-        values_of_the_Lagranges_polynom_in_the_points_of_error_grid[i] = get_polynoms_value_in_the_point (x, y, error_grid[i], initial_index_of_interpolation, final_index_of_interpolation);
+        size_t interval = find_interval (error_grid[i], a, K_grid_of_intervals, K);
+        size_t start_idx = (interval - 1) * (N - 1);
+        size_t end_idx   = interval * (N - 1);
+        values_of_the_Lagranges_polynom_in_the_points_of_error_grid[i] = get_polynoms_value_in_the_point (x, y, error_grid[i], start_idx, end_idx);
     }
+
     long double abs_error_1 = 0.0, abs_error_2 = 0.0, abs_error_inf = abs (values_of_the_math_function_in_the_points_of_error_grid[0] - values_of_the_Lagranges_polynom_in_the_points_of_error_grid[0]);
     long double norm_f_1 = 0.0, norm_f_2 = 0.0, norm_f_inf = values_of_the_math_function_in_the_points_of_error_grid[0];
     for (size_t i = 0; i < number_of_points_of_error_grid_step; ++i) {
