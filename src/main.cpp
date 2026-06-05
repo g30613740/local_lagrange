@@ -2,124 +2,67 @@
 
 int main () {
 
-	// Parameters of the program //
-    const long double a = -3.14, b = 3.14;  // segment boundaries
-    const size_t K = 10;                    // number of partitioning intervals
-    const size_t N = 15;                    // number of nodes per interval (degree of polynomial = N-1)
+    // Parameters
+    const long double a = -3.14, b = 3.14;
+    const size_t num_intervals = 10;
+    const size_t nodes_per_interval = 15;  // polynom degree = nodes_per_interval - 1
 
-    const long double K_grid_of_intervals = abs (a - b) / K ;
+    const long double interval_len = (b - a) / num_intervals;
+    const size_t total_nodes = num_intervals * nodes_per_interval - num_intervals + 1;
 
-    const size_t M = K * N - K + 1;
+    // vizualisation
+    const size_t viz_points = 100;
+    const long double viz_step = (b - a) / (viz_points - 1);
 
-    // parameters of grid for plot creating //
-    const size_t M_viz = 100;  // number of points for plotting graphs
-    const long double grids_step = abs (a - b) / (M_viz - 1);
+    // degree for errors (step = h / 100)
+    const size_t error_grid_size = 100 * (total_nodes - 1) + 1;
 
-    // parameters for errors evaluating //
-    const size_t number_of_points_of_error_grid_step = M + 99 * K;  // step for error grid = h / 100
+    // create interpolation nodes
+    long double* x = create_uniform_grid (a, b, total_nodes);
+    long double* y = new long double [total_nodes];
+    fill_function_values (x, y, total_nodes);
 
-    // arrays for Lagrange's polynom creating //
-    long double *x = create_uniform_grid (a, b, M);
-    long double *y = new long double [M];
-    fill_function_values (x, y, M);
+    // grid for vizualisation
+    long double* viz_grid = create_uniform_grid(a, b, viz_points);
+    long double* L_viz = new long double[viz_points];
+    compute_interpolant_on_grid(x, y, viz_grid, L_viz, viz_points,
+                                a, interval_len, num_intervals, nodes_per_interval);
 
-    // arrays for Lagrange's polynom creating and visualization //
-    long double *grid = new long double [M_viz];
-    long double *L = new long double [M_viz];
+    // grid for errors vizualisation
+    long double* error_grid_points = create_uniform_grid(a, b, error_grid_size);
+    long double* f_error = new long double[error_grid_size];
+    fill_function_values(error_grid_points, f_error, error_grid_size);
 
-    grid[0] = a;
-    for (size_t i = 1; i < M_viz; ++i)
-        grid[i] = grid[i-1] + grids_step;
+    long double* L_error = new long double[error_grid_size];
+    compute_interpolant_on_grid(x, y, error_grid_points, L_error, error_grid_size,
+                                a, interval_len, num_intervals, nodes_per_interval);
 
-    for (size_t i = 0; i < M_viz; ++i) {
-        size_t interval = find_interval (grid[i], a, K_grid_of_intervals, K);
-        size_t start_idx = (interval - 1) * (N - 1);
-        size_t end_idx   = interval * (N - 1);
-        L[i] = get_polynoms_value_in_the_point (x, y, grid[i], start_idx, end_idx);
-    }
+    // evaluating errors
+    long double abs_err[3], rel_err[3];
+    compute_error_norms(f_error, L_error, error_grid_size, abs_err, rel_err);
 
+    std::cout << "Absolute error  (1)  = " << abs_err[0] << "\n"
+              << "Absolute error  (2)  = " << abs_err[1] << "\n"
+              << "Absolute error (inf) = " << abs_err[2] << "\n"
+              << "Relative error  (1)  = " << rel_err[0] << "\n"
+              << "Relative error  (2)  = " << rel_err[1] << "\n"
+              << "Relative error (inf) = " << rel_err[2] << std::endl;
 
-    // arrays for errors evaluating //
-    long double *error_grid = create_uniform_grid (a, b, number_of_points_of_error_grid_step);
-    long double *values_of_the_math_function_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
-    fill_function_values (error_grid, values_of_the_math_function_in_the_points_of_error_grid, number_of_points_of_error_grid_step);
+    // data for plot creating
+    long double* f_viz = new long double[viz_points];
+    fill_function_values(viz_grid, f_viz, viz_points);
 
-    long double *values_of_the_Lagranges_polynom_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
+    export_plot_data("parameters.txt",
+                     total_nodes, x, y,
+                     viz_points, viz_grid, f_viz, L_viz);
 
-    for (size_t i = 0; i < number_of_points_of_error_grid_step; ++i) {
-        size_t interval = find_interval (error_grid[i], a, K_grid_of_intervals, K);
-        size_t start_idx = (interval - 1) * (N - 1);
-        size_t end_idx   = interval * (N - 1);
-        values_of_the_Lagranges_polynom_in_the_points_of_error_grid[i] = get_polynoms_value_in_the_point (x, y, error_grid[i], start_idx, end_idx);
-    }
+    // calling Python script
+    system("python3 scripts/create_plot.py");
 
-    long double abs_error_1 = 0.0, abs_error_2 = 0.0, abs_error_inf = abs (values_of_the_math_function_in_the_points_of_error_grid[0] - values_of_the_Lagranges_polynom_in_the_points_of_error_grid[0]);
-    long double norm_f_1 = 0.0, norm_f_2 = 0.0, norm_f_inf = values_of_the_math_function_in_the_points_of_error_grid[0];
-    for (size_t i = 0; i < number_of_points_of_error_grid_step; ++i) {
-        long double difference = abs (values_of_the_math_function_in_the_points_of_error_grid[i] - values_of_the_Lagranges_polynom_in_the_points_of_error_grid[i]);
-        abs_error_1 += difference;
-        abs_error_2 += pow (difference, 2);
-        if (abs_error_inf < difference)
-            abs_error_inf = difference;
-
-        norm_f_1 += abs (values_of_the_math_function_in_the_points_of_error_grid[i]);
-        norm_f_2 += pow (abs (values_of_the_math_function_in_the_points_of_error_grid[i]), 2);
-        if (norm_f_inf < values_of_the_math_function_in_the_points_of_error_grid[i])
-            norm_f_inf = values_of_the_math_function_in_the_points_of_error_grid[i];
-    }
-    abs_error_2 = sqrt (abs_error_2);
-    norm_f_2 = sqrt (norm_f_2);
-    cout << "Absolute error  (1)  = " << abs_error_1 << endl;
-    cout << "Absolute error  (2)  = " << abs_error_2 << endl;
-    cout << "Absolute error (inf) = " << abs_error_inf << endl;
-    cout << "Relative error  (1)  = " << abs_error_1 / norm_f_1 << endl;
-    cout << "Relative error  (2)  = " << abs_error_2 / norm_f_2 << endl;
-    cout << "Relative error (inf) = " << abs_error_inf / norm_f_inf << endl;
-
-    // V. Creating plot. //
-
-    // export data to the file //
-    ofstream file;
-    file.open ("parameters.txt");
-    
-    file << M << '\n' << M_viz << '\n';
-    // extracting nodes of interpolation //
-    for (size_t i = 0; i < M; ++i) {
-        file << x[i] << ' ';
-    }
-    file << '\n';
-    for (size_t i = 0; i < M; ++i) {
-        file << y[i] << ' ';
-    }
-    file << '\n';
-    // extracting data for plot creating //
-    for (size_t i = 0; i < M_viz; ++i) {
-        file << grid[i] << ' ';
-    }
-    file << '\n';
-    for (size_t i = 0; i < M_viz; ++i) {
-        file << get_value_of_the_math_function_in_the_point (grid[i]) << ' ';
-    }
-    file << '\n';
-    for (size_t i = 0; i < M_viz; ++i) {
-        file << L[i] << ' ';
-    }
-    file << endl;
-    
-    file.close ();
-
-    // start Python for create plot //
-    string comand_and_filename = "python3 scripts/create_plot.py"; // start Python
-    system (comand_and_filename.c_str ());                 // calling Python
-
-    // VI. Freeing up resources. //
-    delete [] x;
-    delete [] y;
-    delete [] grid;
-    delete [] L;
-    delete [] error_grid;
-    delete [] values_of_the_math_function_in_the_points_of_error_grid;
-    delete [] values_of_the_Lagranges_polynom_in_the_points_of_error_grid;
+    // free up resources
+    delete [] x; delete[] y;
+    delete [] viz_grid; delete [] L_viz; delete [] f_viz;
+    delete [] error_grid_points; delete [] f_error; delete [] L_error;
 
     return 0;
 }
