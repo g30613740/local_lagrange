@@ -40,5 +40,23 @@ size_t find_interval (long double x, long double a, long double step, size_t K) 
             return j;
         }
     }
-    return K; // fallback
+    return K;
+}
+
+long double* create_uniform_grid (long double a, long double b, size_t points) {
+
+    if (points < 2) return nullptr;
+    long double *grid = new long double [points];
+    long double step = abs(b - a) / (points - 1);
+    grid[0] = a;
+    for (size_t i = 1; i < points; ++i) {
+        grid[i] = grid[i-1] + step;
+    }
+    return grid;
+}
+
+void fill_function_values (const long double* x, long double* y, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        y[i] = get_value_of_the_math_function_in_the_point (x[i]);
+    }
 }

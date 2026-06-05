@@ -2,7 +2,7 @@
 
 int main () {
 
-	// I. Parameters of the program. //
+	// Parameters of the program //
     const long double a = -3.14, b = 3.14;  // segment boundaries
     const size_t K = 10;                    // number of partitioning intervals
     const size_t N = 15;                    // number of nodes per interval (degree of polynomial = N-1)
@@ -10,36 +10,22 @@ int main () {
     const long double K_grid_of_intervals = abs (a - b) / K ;
 
     const size_t M = K * N - K + 1;
-    const long double h = abs (a - b) / (M - 1);
 
     // parameters of grid for plot creating //
     const size_t M_viz = 100;  // number of points for plotting graphs
     const long double grids_step = abs (a - b) / (M_viz - 1);
 
     // parameters for errors evaluating //
-    const long double error_grids_step = h / 100;
-    const size_t number_of_points_of_error_grid_step = M + 99 * (M - 1);
-
-    // II. Memory allocation. //
+    const size_t number_of_points_of_error_grid_step = M + 99 * K;  // step for error grid = h / 100
 
     // arrays for Lagrange's polynom creating //
-    long double *x = new long double [M];
+    long double *x = create_uniform_grid (a, b, M);
     long double *y = new long double [M];
+    fill_function_values (x, y, M);
+
     // arrays for Lagrange's polynom creating and visualization //
     long double *grid = new long double [M_viz];
     long double *L = new long double [M_viz];
-    // arrays for errors evaluating //
-    long double *error_grid = new long double [number_of_points_of_error_grid_step];
-    long double *values_of_the_math_function_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
-    long double *values_of_the_Lagranges_polynom_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
-
-    // III. Resources filling for creating Lagrange's polynom and creating Lagrange's polynom. //
-    x[0] = a;
-    y[0] = get_value_of_the_math_function_in_the_point (a);
-    for (size_t i = 1; i < M; ++i) {
-        x[i] = x[i-1] + h;
-        y[i] = get_value_of_the_math_function_in_the_point (x[i]);
-    }
 
     grid[0] = a;
     for (size_t i = 1; i < M_viz; ++i)
@@ -53,15 +39,13 @@ int main () {
     }
 
 
-    // IV. Evaluating errors. //
+    // arrays for errors evaluating //
+    long double *error_grid = create_uniform_grid (a, b, number_of_points_of_error_grid_step);
+    long double *values_of_the_math_function_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
+    fill_function_values (error_grid, values_of_the_math_function_in_the_points_of_error_grid, number_of_points_of_error_grid_step);
 
-    error_grid[0] = a;
-    values_of_the_math_function_in_the_points_of_error_grid[0] = get_value_of_the_math_function_in_the_point (a);
-    for (size_t i = 1; i < number_of_points_of_error_grid_step; ++i) {
-        error_grid[i] = error_grid[i-1] + error_grids_step;
-        values_of_the_math_function_in_the_points_of_error_grid[i] = get_value_of_the_math_function_in_the_point (error_grid[i]);
-    }
-    
+    long double *values_of_the_Lagranges_polynom_in_the_points_of_error_grid = new long double [number_of_points_of_error_grid_step];
+
     for (size_t i = 0; i < number_of_points_of_error_grid_step; ++i) {
         size_t interval = find_interval (error_grid[i], a, K_grid_of_intervals, K);
         size_t start_idx = (interval - 1) * (N - 1);
