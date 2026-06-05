@@ -3,16 +3,17 @@
 int main () {
 
 	// I. Parameters of the program. //
-    const long double a = -3.14, b = 3.14;
-    const size_t K = 10, N = 15;
+    const long double a = -3.14, b = 3.14;  // segment boundaries
+    const size_t K = 10;                    // number of partitioning intervals
+    const size_t N = 15;                    // number of nodes per interval (degree of polynomial = N-1)
 
     const long double K_grid_of_intervals = abs (a - b) / K ;
 
     const size_t M = K * N - K + 1;
     const long double h = abs (a - b) / (M - 1);
 
-    // parameters of M_viz grid for plot creating //
-    const size_t M_viz = 100;
+    // parameters of grid for plot creating //
+    const size_t M_viz = 100;  // number of points for plotting graphs
     const long double grids_step = abs (a - b) / (M_viz - 1);
 
     // parameters for errors evaluating //
