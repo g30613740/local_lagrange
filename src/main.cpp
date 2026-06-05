@@ -12,7 +12,6 @@ int main () {
 
     // vizualisation
     const size_t viz_points = 100;
-    const long double viz_step = (b - a) / (viz_points - 1);
 
     // degree for errors (step = h / 100)
     const size_t error_grid_size = 100 * (total_nodes - 1) + 1;

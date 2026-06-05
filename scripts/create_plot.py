@@ -14,13 +14,13 @@ plt.style.use ('default')  # style of plot settings
 fig, ax = plt.subplots (figsize=(10, 6))
 
 # original f(x) - blue line
-ax.plot (grid, f_vals, 'b--', linewidth=1.5, label='$f(x) = sin(x)$', alpha=0.8)
+ax.plot (grid, f_vals, 'black', linewidth=1.5, label='$f(x) = sin(x)$', alpha=0.8)
 
 # interpolate f(x) - red line
 ax.plot (grid, L_vals, 'r-', linewidth=2, label='Локальный полином Лагранжа $L(x)$', alpha=0.9)
 
 # nodes of the interpolation
-ax.plot (x, y, 'o', color='green', markersize=6, markeredgecolor='black', 
+ax.plot (x, y, 'o', color='green', markersize=1, markeredgecolor='black', 
         markeredgewidth=0.8, label='Узлы интерполяции', zorder=5)
 
 ax.set_title ('Локальная интерполяция многочленами Лагранжа', fontsize=14, fontweight='bold')
