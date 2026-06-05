@@ -1,0 +1,19 @@
+# Compiled files
+obj/
+bin/
+*.o
+*.exe
+*.out
+
+# Data files (parameters.txt будет создаваться программой, но не нужно коммитить)
+data/*.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE files
+.idea/
+
+# Build directories
+build/
